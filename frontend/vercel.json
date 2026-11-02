@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://saferide-backend.onrender.com/api/:path*" },
+    { "source": "/api/:path*", "destination": "https://saferide-backend-yo9v.onrender.com/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
