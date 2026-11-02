@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: saferide-backend
+    runtime: docker
+    plan: free
+    region: frankfurt # next to the Supabase database (eu-central-1)
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      # Secrets: Render asks for these when the blueprint is created.
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_NAME
+        value: School Administrator
+      - key: APP_TIMEZONE
+        value: Asia/Kolkata
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://frontend-beta-nine-60.vercel.app
+      - key: RFID_READER_API_KEY
+        sync: false
