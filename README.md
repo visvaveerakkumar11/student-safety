@@ -117,6 +117,7 @@ Other commands:
 
 - **Parent SMS.** `SimulatedNotificationProvider` stands in for a real SMS gateway; no messages are actually sent. Messages are marked *Simulated* in the UI. To go live, implement `NotificationProvider` (`backend/src/main/java/com/childsafety/service/notification/`) for a real gateway such as Twilio or MSG91.
 - **RFID reader.** The *Scan simulator* calls the same endpoint a physical reader would.
+- **Demo traffic.** With `DEMO_TRAFFIC_ENABLED=true` (set in `render.yaml`), `DemoTrafficSimulator` taps a card every 20 seconds through the normal verification rules, recorded as reader scans. A few taps are deliberately invalid and get rejected. It is off by default for local runs.
 
 ## Connecting a hardware RFID reader
 

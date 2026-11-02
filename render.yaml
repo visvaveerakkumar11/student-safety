@@ -29,3 +29,5 @@ services:
         value: https://frontend-beta-nine-60.vercel.app
       - key: RFID_READER_API_KEY
         sync: false
+      - key: DEMO_TRAFFIC_ENABLED
+        value: "true"
