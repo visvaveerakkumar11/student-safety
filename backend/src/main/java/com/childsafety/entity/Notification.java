@@ -113,7 +113,10 @@ public class Notification {
         this.failureReason = reason;
     }
 
-    public void requeue() {
+    /** Queues a failed notification again, to be sent by the given (current) provider. */
+    public void requeue(String provider, boolean simulated) {
+        this.provider = provider;
+        this.simulated = simulated;
         this.status = NotificationStatus.PENDING;
         this.failureReason = null;
         this.providerMessageId = null;

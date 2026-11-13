@@ -22,7 +22,10 @@ public record AppProperties(
 
     public record Rfid(int duplicateScanWindowSeconds) {}
 
-    public record Notifications(double simulatedFailureRate, long dispatchIntervalMs) {}
+    /** @param provider "simulated" (default) or "sms-gate" (real SMS from an Android phone). */
+    public record Notifications(String provider, double simulatedFailureRate, long dispatchIntervalMs, SmsGate smsGate) {}
+
+    public record SmsGate(String username, String password) {}
 
     public ZoneId zoneId() {
         return ZoneId.of(timezone);

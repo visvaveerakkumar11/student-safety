@@ -6,6 +6,7 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import com.childsafety.config.AppProperties;
@@ -16,6 +17,7 @@ import com.childsafety.config.AppProperties;
  * and receipts arrive a few seconds after sending, so every status path can be demonstrated.
  */
 @Component
+@ConditionalOnProperty(name = "app.notifications.provider", havingValue = "simulated", matchIfMissing = true)
 public class SimulatedNotificationProvider implements NotificationProvider {
 
     private static final Duration RECEIPT_DELAY = Duration.ofSeconds(3);

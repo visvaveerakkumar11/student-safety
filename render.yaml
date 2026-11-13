@@ -31,3 +31,11 @@ services:
         sync: false
       - key: DEMO_TRAFFIC_ENABLED
         value: "true"
+      # Real parent SMS (see README). Leave unset to keep simulated alerts; when set, demo traffic
+      # switches itself off so fake taps never text real parents.
+      - key: NOTIFICATION_PROVIDER # "sms-gate"
+        sync: false
+      - key: SMS_GATE_USERNAME
+        sync: false
+      - key: SMS_GATE_PASSWORD
+        sync: false

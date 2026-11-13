@@ -36,6 +36,11 @@ import jakarta.persistence.criteria.Predicate;
 /**
  * Notification lifecycle: PENDING (created with the scan) -> SENT (provider accepted) ->
  * DELIVERED (provider receipt), or FAILED at either step. Failed notifications can be retried.
+ *
+ * <p>Several backend instances may share one database (e.g. a local run next to the hosted one), each with
+ * its own provider. An instance only sends and tracks notifications created for its own provider, so a
+ * simulated instance never marks a real SMS delivered and a real one never texts a simulated (demo) alert;
+ * each notification is row-locked while it is processed, so it is never sent twice.
  */
 @Service
 public class NotificationService {
@@ -68,10 +73,10 @@ public class NotificationService {
 
     /** Sends queued notifications, one short transaction per message. */
     public void dispatchPending() {
-        List<Long> ids = notifications.findByStatusOrderByCreatedAtAsc(NotificationStatus.PENDING, PageRequest.of(0, BATCH_SIZE))
-                .stream().map(Notification::getId).toList();
+        List<Long> ids = notifications.findByStatusAndProviderOrderByCreatedAtAsc(NotificationStatus.PENDING,
+                provider.name(), PageRequest.of(0, BATCH_SIZE)).stream().map(Notification::getId).toList();
         for (Long id : ids) {
-            tx.executeWithoutResult(status -> notifications.findById(id)
+            tx.executeWithoutResult(status -> notifications.findForUpdate(id)
                     .filter(n -> n.getStatus() == NotificationStatus.PENDING)
                     .ifPresent(this::send));
         }
@@ -79,11 +84,11 @@ public class NotificationService {
 
     /** Polls the provider for delivery receipts of recently sent notifications. */
     public void refreshDeliveryStatuses() {
-        List<Long> ids = notifications.findByStatusAndSentAtAfterOrderBySentAtAsc(NotificationStatus.SENT,
-                Instant.now().minus(RECEIPT_WINDOW), PageRequest.of(0, BATCH_SIZE * 2))
+        List<Long> ids = notifications.findByStatusAndProviderAndSentAtAfterOrderBySentAtAsc(NotificationStatus.SENT,
+                provider.name(), Instant.now().minus(RECEIPT_WINDOW), PageRequest.of(0, BATCH_SIZE * 2))
                 .stream().map(Notification::getId).toList();
         for (Long id : ids) {
-            tx.executeWithoutResult(status -> notifications.findById(id)
+            tx.executeWithoutResult(status -> notifications.findForUpdate(id)
                     .filter(n -> n.getStatus() == NotificationStatus.SENT)
                     .ifPresent(this::checkDelivery));
         }
@@ -95,7 +100,7 @@ public class NotificationService {
         if (n.getStatus() != NotificationStatus.FAILED) {
             throw ApiException.conflict("Only failed notifications can be retried (current status: " + n.getStatus() + ")");
         }
-        n.requeue();
+        n.requeue(provider.name(), provider.isSimulated());
         return NotificationDto.from(n, false);
     }
 

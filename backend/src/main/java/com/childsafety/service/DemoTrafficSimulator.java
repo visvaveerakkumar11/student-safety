@@ -16,12 +16,14 @@ import com.childsafety.entity.ScanSource;
 import com.childsafety.entity.Student;
 import com.childsafety.repository.BusRepository;
 import com.childsafety.repository.StudentRepository;
+import com.childsafety.service.notification.NotificationProvider;
 
 /**
  * Demo traffic for showcasing the dashboard: periodically taps a card on an active bus through the normal
  * verification path, so scans, onboard counts and parent notifications keep changing. Most taps are a rider
  * of that bus (boarding or exit is inferred); a few are an unregistered card or a rider of another bus, which
- * the verification rules reject. Enabled only when {@code app.demo.traffic-enabled=true}.
+ * the verification rules reject. Enabled only when {@code app.demo.traffic-enabled=true}, and never while a
+ * real notification provider is configured, so fake taps cannot text real parents.
  */
 @Component
 @ConditionalOnProperty(name = "app.demo.traffic-enabled", havingValue = "true")
@@ -32,15 +34,24 @@ class DemoTrafficSimulator {
     private final BusRepository buses;
     private final StudentRepository students;
     private final ScanService scans;
+    private final boolean enabled;
 
-    DemoTrafficSimulator(BusRepository buses, StudentRepository students, ScanService scans) {
+    DemoTrafficSimulator(BusRepository buses, StudentRepository students, ScanService scans,
+            NotificationProvider provider) {
         this.buses = buses;
         this.students = students;
         this.scans = scans;
+        this.enabled = provider.isSimulated();
+        if (!enabled) {
+            log.warn("Demo traffic disabled: notification provider {} sends real messages", provider.name());
+        }
     }
 
     @Scheduled(fixedDelay = 20_000, initialDelay = 15_000)
     void tap() {
+        if (!enabled) {
+            return;
+        }
         try {
             List<Bus> active = buses.findAll().stream().filter(b -> b.getStatus() == BusStatus.ACTIVE).toList();
             if (active.isEmpty()) {

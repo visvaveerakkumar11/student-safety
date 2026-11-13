@@ -50,12 +50,7 @@ These run inside one database transaction. The bus row and then the student row 
 1. In the Supabase dashboard, open **SQL Editor**.
 2. Paste and run `database/schema.sql`. This creates the 7 tables, constraints, indexes and RLS.
    > The schema script drops and recreates these tables, so only run it on a fresh project or when you want a reset.
-3. Paste and run `database/seed.sql` (optional, but recommended for the demo). It adds:
-   - 6 buses, one of them in maintenance;
-   - 40 students with RFID cards;
-   - about 4 weeks of scan history;
-   - notifications;
-   - students currently onboard today.
+3. Paste and run `database/seed.sql`. It empties every table except `admins`, then adds 2 buses and 4 students with RFID cards. All 4 students use the parent number +91 70107 47232. Run it again at any time to reset the data.
 4. Get the connection details from **Project Settings → Database → Connection string → JDBC**. Choose **Session pooler**: it works over IPv4 on port 5432.
 
 ## 2. Backend configuration
@@ -115,7 +110,12 @@ Other commands:
 
 ## What is simulated
 
-- **Parent SMS.** `SimulatedNotificationProvider` stands in for a real SMS gateway; no messages are actually sent. Messages are marked *Simulated* in the UI. To go live, implement `NotificationProvider` (`backend/src/main/java/com/childsafety/service/notification/`) for a real gateway such as Twilio or MSG91.
+- **Parent SMS.** By default `SimulatedNotificationProvider` stands in for a real channel: nothing is sent, and alerts are marked *Simulated* in the UI. To send real SMS to each student's registered parent number for free, use an Android phone as the sender:
+  1. Install [SMS Gateway for Android](https://sms-gate.app) on the phone.
+  2. Turn on **Cloud Server**, tap **Start Service**, and copy the username and password it shows.
+  3. In `backend/.env`, set `NOTIFICATION_PROVIDER=sms-gate`, `SMS_GATE_USERNAME` and `SMS_GATE_PASSWORD`.
+
+  Alerts go out over that phone's SIM and normal SMS charges apply; most Indian plans include about 100 free SMS a day. The phone reports delivery, so alerts move to *DELIVERED*. Numbers without a country code are sent as +91. Demo traffic is switched off automatically while a real provider is active, so fake taps never text real parents.
 - **RFID reader.** The *Scan simulator* calls the same endpoint a physical reader would.
 - **Demo traffic.** With `DEMO_TRAFFIC_ENABLED=true` (set in `render.yaml`), `DemoTrafficSimulator` taps a card every 20 seconds through the normal verification rules, recorded as reader scans. A few taps are deliberately invalid and get rejected. It is off by default for local runs.
 

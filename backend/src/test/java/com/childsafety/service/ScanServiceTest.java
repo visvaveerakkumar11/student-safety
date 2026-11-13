@@ -53,7 +53,7 @@ class ScanServiceTest {
     void setUp() {
         AppProperties props = new AppProperties("Asia/Kolkata", new AppProperties.Cors(List.of()),
                 new AppProperties.Security("x".repeat(32), 60, null), new AppProperties.Bootstrap(null, null, null),
-                new AppProperties.Rfid(10), new AppProperties.Notifications(0, 2000));
+                new AppProperties.Rfid(10), new AppProperties.Notifications("simulated", 0, 2000, null));
         service = new ScanService(buses, students, cards, scanEvents, notifications, props);
 
         bus = bus(1L, "BUS-01", 20);
