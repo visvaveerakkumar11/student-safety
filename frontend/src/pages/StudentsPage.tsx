@@ -24,6 +24,7 @@ import { getErrorMessage } from '@/services/http'
 import type { Student, TransportStatus } from '@/types/api'
 import { formatDateTime, formatUid, initials, transportStatusLabel } from '@/utils/format'
 import { StudentDetailSheet } from './students/StudentDetailSheet'
+import { StudentStatusButton } from './students/StudentStatusButton'
 import { StudentFormDialog } from './students/StudentFormDialog'
 
 const PAGE_SIZE = 10
@@ -147,6 +148,7 @@ export default function StudentsPage() {
                   <TableCell>
                     <TransportStatusBadge status={s.transportStatus} />
                     {s.lastScanAt && <p className="mt-1 hidden text-[11px] text-muted-foreground xl:block">{formatDateTime(s.lastScanAt)}</p>}
+                    <div className="mt-1.5"><StudentStatusButton student={s} size="xs" onChanged={() => void students.reload()} /></div>
                   </TableCell>
                   <TableCell className="pr-4" onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
@@ -169,7 +171,7 @@ export default function StudentsPage() {
       </Card>
 
       <StudentFormDialog open={formOpen} onOpenChange={setFormOpen} studentId={editingId} buses={buses.data ?? []} onSaved={onSaved} />
-      <StudentDetailSheet studentId={viewingId} onClose={() => setViewingId(null)} onEdit={openEdit} />
+      <StudentDetailSheet studentId={viewingId} onClose={() => setViewingId(null)} onEdit={openEdit} onChanged={() => void students.reload()} />
       <ConfirmDialog
         open={deleting !== null}
         onOpenChange={(open) => !open && setDeleting(null)}

@@ -8,12 +8,15 @@ import { ErrorState } from '@/components/PageStates'
 import { EventTypeBadge, NotificationStatusBadge, ScanResultBadge, SimulatedTag, TransportStatusBadge } from '@/components/StatusBadge'
 import { useApi } from '@/hooks/useApi'
 import { studentsApi } from '@/services/api'
+import { StudentStatusButton } from './StudentStatusButton'
 import { formatDateTime, formatUid, initials } from '@/utils/format'
 
-export function StudentDetailSheet({ studentId, onClose, onEdit }: {
+export function StudentDetailSheet({ studentId, onClose, onEdit, onChanged }: {
   studentId: number | null
   onClose: () => void
   onEdit: (id: number) => void
+  /** Called after the student's transport status was changed from this sheet. */
+  onChanged: () => void
 }) {
   const detail = useApi(() => (studentId ? studentsApi.get(studentId) : Promise.resolve(null)), [studentId])
   const d = detail.data
@@ -53,7 +56,10 @@ export function StudentDetailSheet({ studentId, onClose, onEdit }: {
                 </div>
               </dl>
 
-              <Button variant="outline" size="sm" onClick={() => onEdit(d.student.id)}><Pencil /> Edit student</Button>
+              <div className="flex flex-wrap gap-2">
+                <StudentStatusButton student={d.student} onChanged={() => { void detail.reload(); onChanged() }} />
+                <Button variant="outline" size="sm" onClick={() => onEdit(d.student.id)}><Pencil /> Edit student</Button>
+              </div>
 
               <section>
                 <h3 className="mb-3 text-sm font-semibold">Recent scans</h3>
